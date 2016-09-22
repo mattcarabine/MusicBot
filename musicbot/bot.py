@@ -757,6 +757,27 @@ class MusicBot(discord.Client):
             helpmsg += "https://github.com/SexualRhinoceros/MusicBot/wiki/Commands-list"
 
             return Response(helpmsg, reply=True, delete_after=60)
+    
+    async def cmd_remove(self, player, author, permissions, index):
+
+        try:
+            index = int(index) - 1
+        except ValueError:
+            return Response('Index must be a number! You played yourself.')
+        
+        try:        
+            if author.id == self.config.owner_id \
+                    or permissions.instaskip \
+                    or author == player.playlist.entries[index].meta.get('author', None):
+                song = player.playlist.entries[index]
+                del player.playlist.entries[index]
+            else:
+                raise exceptions.PermissionsError("only the owner or the song selector can remove"
+                                                  " a song from the play queue")
+        except KeyError:
+            return Response('Song at index {} does not exist'.format(index))
+        else:
+            return Response('Removed {} from the play queue'.format(song.title))
 
     async def cmd_blacklist(self, message, user_mentions, option, something):
         """
